@@ -2,9 +2,11 @@ package mod;
 
 import arc.*;
 import arc.graphics.*;
+import arc.struct.Seq;
 import arc.util.*;
 import mindustry.*;
 import mindustry.content.*;
+import mindustry.content.TechTree.TechNode;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
@@ -14,11 +16,14 @@ import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.production.*;
 import static mindustry.type.ItemStack.*;
+import static mindustry.content.TechTree.*;
 
 public class MainMod extends Mod{
 	public static Item frogMetal, frogRaw;
 	public static Block oreFrog;
-	public static GenericCrafter frogSmelter;
+	public static MultiCrafter frogSmelter;
+	public static TechNode techNode;
+	public static Recipe frogMetalRecipe;
 
     public MainMod(){
         Log.info("[AT]Loaded constructor.");
@@ -39,42 +44,54 @@ public class MainMod extends Mod{
     public void loadContent(){
         Log.info("[AT]Loading content.");
         loadItems();
+        loadRecipes();
         loadBlocks();
         loadUnits();
+        loadResearch();
     }
     
     private void loadItems() {
-    	frogRaw = new Item("frog-raw", Color.valueOf("ebeef5")){{
+    	frogRaw = new Item("frog-raw", Color.valueOf("00ee00")){{
     		alwaysUnlocked = true;
             cost = 1.5f;
             hardness = 1;
         }};
-    	frogMetal = new Item("frog-metal", Color.valueOf("ebefe5")){{
+        
+    	frogMetal = new Item("frog-metal", Color.valueOf("11ee22")){{
     		
             cost = 1.5f;
             hardness = 1;
         }};
     }
+    
+    private void loadRecipes() {
+    	new Recipe("smelt-frogRaw",new ItemStack(frogMetal,1)).addRequirement(new ItemStack(frogRaw, 2));
+    	new Recipe("smelt-frogRaw2",new ItemStack(frogRaw,2)).addRequirement(new ItemStack(frogMetal, 1));
+    }
+    
     private void loadBlocks() {
     	oreFrog = new OreBlock(frogRaw){{
-    		
             oreDefault = true;
             oreThreshold = 0.882f;
             oreScale = 25.380953f;
         }};
         
-        frogSmelter = new GenericCrafter("frog-smelter"){{
+        frogSmelter = new MultiCrafter("frog-smelter", Seq.with(Recipe.getRecipe("smelt-frogRaw"),Recipe.getRecipe("smelt-frogRaw2"))){{
             requirements(Category.crafting, with(frogRaw, 50, Items.copper, 30));
             
             craftEffect = Fx.pulverizeMedium;
-            outputItem = new ItemStack(frogMetal, 1);
+            //outputItems = new ItemStack[] {new ItemStack(frogMetal, 1)};
             craftTime = 120f;
             size = 2;
-            hasItems = true;
             
-            consumes.power(0.25f);
-            consumes.item(frogRaw, 2);
+            /*consumes.power(0.25f);*/
+            //consumes.item(frogRaw, 2);
         }};
     }
+    
     private void loadUnits() {}
+    
+    private void loadResearch() {
+    	techNode = new TechNode(TechTree.root,frogSmelter,frogSmelter.researchRequirements()) {};
+    }
 }
