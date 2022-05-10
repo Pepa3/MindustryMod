@@ -21,7 +21,7 @@ import static mindustry.content.TechTree.*;
 public class MainMod extends Mod{
 	public static Item frogMetal, frogRaw;
 	public static Block oreFrog;
-	public static MultiCrafter frogSmelter;
+	public static RecipeCrafter frogSmelter;
 	public static TechNode techNode;
 	public static Recipe frogMetalRecipe;
 
@@ -58,7 +58,6 @@ public class MainMod extends Mod{
         }};
         
     	frogMetal = new Item("frog-metal", Color.valueOf("11ee22")){{
-    		
             cost = 1.5f;
             hardness = 1;
         }};
@@ -76,7 +75,7 @@ public class MainMod extends Mod{
             oreScale = 25.380953f;
         }};
         
-        frogSmelter = new MultiCrafter("frog-smelter", Seq.with(Recipe.getRecipe("smelt-frogRaw"),Recipe.getRecipe("smelt-frogRaw2"))){{
+        frogSmelter = new RecipeCrafter("frog-smelter", Seq.with(Recipe.getRecipe("smelt-frogRaw"),Recipe.getRecipe("smelt-frogRaw2"))){{
             requirements(Category.crafting, with(frogRaw, 50, Items.copper, 30));
             
             craftEffect = Fx.pulverizeMedium;

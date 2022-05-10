@@ -19,14 +19,14 @@ public class Recipe{
 		this.time = time;
 		this.out = out;
 		
-		if(!recipes.containsKey(id)) {
-			recipes.put(id, this);
+		if(!recipes.containsKey(this.id)) {
+			recipes.put(this.id, this);
 		}else {
 			Log.warn("Identical recipe ID, is this an override? {}", id);
 		}
 	}
 	public Recipe(String id, ItemStack out) {
-		this(id,MultiCrafter.defaultCraftingTime, out);
+		this(id, RecipeCrafter.defaultCraftingTime, out);
 	}
 	
 	public static Recipe getRecipe(String id) {

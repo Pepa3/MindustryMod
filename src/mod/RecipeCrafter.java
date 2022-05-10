@@ -21,7 +21,7 @@ import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
-public class MultiCrafter extends Block{
+public class RecipeCrafter extends Block{
     public static final float defaultCraftingTime = 10.0f;
     
     public @Nullable ItemStack[] outputItems;
@@ -38,7 +38,7 @@ public class MultiCrafter extends Block{
     
     public int[] capacities = {};
     
-    public MultiCrafter(String name, Seq<Recipe> recipes){
+    public RecipeCrafter(String name, Seq<Recipe> recipes){
         super(name);
         this.recipes = recipes;
         update = true;
@@ -170,18 +170,6 @@ public class MultiCrafter extends Block{
         @Override
         public void draw(){
         	drawer.draw(this);
-        	/*
-        	Draw.rect(region, x, y);
-            /*Draw.rect(outRegion, x, y, rotdeg());*/
-
-            /*if(currentPlan != -1){
-                Recipe plan = recipes.get(currentPlan);
-                Draw.draw(Layer.blockOver, () -> Drawf.construct(this, plan.getCraftedItem(), rotdeg() - 90f, progress / plan.time, speedScl, time));
-            }*/
-
-            /*Draw.z(Layer.blockOver + 0.1f);
-
-            //Draw.rect(topRegion, x, y);*/
         }
 
         @Override
@@ -189,24 +177,12 @@ public class MultiCrafter extends Block{
             super.drawLight();
             drawer.drawLight(this);
         }
-
-        /*@Override
-        public boolean shouldConsume(){
-            if(outputItems != null){
-                for(ItemStack output : outputItems){
-                    if(items.get(output.item) + output.amount > itemCapacity){
-                        return false;
-                    }
-                }
-            }
-            return (outputLiquid == null || !(liquids.get(outputLiquid.liquid) >= liquidCapacity - 0.001f)) && enabled;
-        }*/
         
         @Override
-        public boolean shouldConsume(){
+        public boolean shouldConsume(){//TODO:OUTITEMS
             if(currentPlan == -1) return false;
             ItemStack output = recipes.get(currentPlan).getCraftedItem();
-            /*if(items.get(output.item) + output.amount > itemCapacity) return false;/**/
+            if(items.get(output.item) + output.amount > itemCapacity) return false;
             return enabled;
         }
 
@@ -305,7 +281,7 @@ public class MultiCrafter extends Block{
 
         @Override
         public int getMaximumAccepted(Item item){
-            return 100;
+            return capacities[item.id];
         }
 
         @Override
@@ -340,12 +316,12 @@ public class MultiCrafter extends Block{
 class DrawBlockImpl extends DrawBlock{
 
     /** Draws the block. */
-    public void draw(mod.MultiCrafter.MultiCrafterBuild build){
+    public void draw(mod.RecipeCrafter.MultiCrafterBuild build){
         Draw.rect(build.block.region, build.x, build.y, build.block.rotate ? build.rotdeg() : 0);
     }
 
     /** Draws any extra light for the block. */
-    public void drawLight(mod.MultiCrafter.MultiCrafterBuild build){
+    public void drawLight(mod.RecipeCrafter.MultiCrafterBuild build){
 
     }
 }
