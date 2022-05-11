@@ -22,7 +22,7 @@ public class Recipe{
 		if(!recipes.containsKey(this.id)) {
 			recipes.put(this.id, this);
 		}else {
-			Log.warn("Identical recipe ID, is this an override? {}", id);
+			Log.warn("Identical recipe ID, is this an override? "+id);
 		}
 	}
 	public Recipe(String id, ItemStack out) {

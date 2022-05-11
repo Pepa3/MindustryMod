@@ -28,29 +28,27 @@ public class RecipeCrafter extends Block{
     public @Nullable LiquidStack outputLiquid;
 
     public float craftTime = 80;
-    public Effect craftEffect = Fx.none;
-    public Effect updateEffect = Fx.none;
+    public Effect craftEffect = Fx.pulverizeMedium;
+    public Effect updateEffect = Fx.pulverizeSmall;
     public float updateEffectChance = 0.04f;
     public float warmupSpeed = 0.019f;
 
     public DrawBlockImpl drawer = new DrawBlockImpl();
-    public Seq<Recipe> recipes = new Seq<>(4);
+    public Seq<Recipe> recipes = Seq.with(Recipe.recipes.values()).filter(r -> r.getId().startsWith("craft"));
     
     public int[] capacities = {};
     
-    public RecipeCrafter(String name, Seq<Recipe> recipes){
+    public RecipeCrafter(String name){
         super(name);
-        this.recipes = recipes;
         update = true;
         solid = true;
         hasPower = true;
         hasItems = true;
         acceptsItems = true;
         ambientSound = Sounds.machine;
-        sync = true;
         ambientSoundVolume = 0.03f;
+        sync = true;
         configurable = true;
-        destructible = true;
         flags = EnumSet.of(BlockFlag.factory);
         //TODO: group = BlockGroup. ...;
         
@@ -67,13 +65,13 @@ public class RecipeCrafter extends Block{
             tile.progress = 0;
         });
         
-        consumes.power(0.25f);
-        consumes.add(new ConsumeItemDynamic((MultiCrafterBuild e) -> e.currentPlan != -1 ? recipes.get(e.currentPlan).getReqs() : ItemStack.empty));
+        consumePower(0.25f);
+        consume(new ConsumeItemDynamic((MultiCrafterBuild e) -> e.currentPlan != -1 ? recipes.get(e.currentPlan).getReqs() : ItemStack.empty));
         
     }
     
     @Override
-    public void setStats(){
+    public void setStats(){//TODO:Better Stats
         stats.timePeriod = craftTime;
         super.setStats();
         stats.add(Stat.productionTime, craftTime / 60f, StatUnit.seconds);
@@ -185,59 +183,14 @@ public class RecipeCrafter extends Block{
             if(items.get(output.item) + output.amount > itemCapacity) return false;
             return enabled;
         }
-
-        /*@Override
-        public void updateTile(){
-            if(consValid()){
-
-                progress += getProgressIncrease(craftTime);
-                totalProgress += delta();
-                warmup = Mathf.approachDelta(warmup, 1f, warmupSpeed);
-
-                if(Mathf.chanceDelta(updateEffectChance)){
-                    updateEffect.at(x + Mathf.range(size * 4f), y + Mathf.range(size * 4));
-                }
-            }else{
-                warmup = Mathf.approachDelta(warmup, 0f, warmupSpeed);
-            }
-
-            if(progress >= 1f){
-                consume();
-
-                if(outputItems != null){
-                    for(ItemStack output : outputItems){
-                        for(int i = 0; i < output.amount; i++){
-                            offload(output.item);
-                        }
-                    }
-                }
-
-                if(outputLiquid != null){
-                    handleLiquid(this, outputLiquid.liquid, outputLiquid.amount);
-                }
-
-                craftEffect.at(x, y);
-                progress %= 1f;
-            }
-
-            if(outputItems != null && timer(timerDump, dumpTime / timeScale)){
-                for(ItemStack output : outputItems){
-                    dump(output.item);
-                }
-            }
-
-            if(outputLiquid != null){
-                dumpLiquid(outputLiquid.liquid);
-            }
-        }*/
         
         @Override
         public void updateTile(){
             if(currentPlan < 0 || currentPlan >= recipes.size){
                 currentPlan = -1;
             }
-
-            if(consValid() && currentPlan != -1){
+            
+            if(efficiency > 0 && currentPlan != -1){
             	progress += getProgressIncrease(craftTime);
                 totalProgress += delta();
                 warmup = Mathf.approachDelta(warmup, 1f, warmupSpeed);
@@ -252,7 +205,7 @@ public class RecipeCrafter extends Block{
             if(progress >= 1f){
                 consume();
 
-                if(recipes.get(currentPlan).getCraftedItem() != null){
+                if(recipes.get(currentPlan).getCraftedItem() != null){//TODO:OUTITEMS
                     //for(ItemStack output : outputItems){
                 	ItemStack output = recipes.get(currentPlan).getCraftedItem();
                         for(int i = 0; i < output.amount; i++){
@@ -265,11 +218,33 @@ public class RecipeCrafter extends Block{
                     handleLiquid(this, outputLiquid.liquid, outputLiquid.amount);
                 }
 
-                craftEffect.at(x, y);
+                if(wasVisible){
+                    craftEffect.at(x, y);
+                }
                 progress %= 1f;
             
             }/*else{
                 progress = 0f;
+            }*/
+            dumpOutputs();
+        }
+        
+        public void dumpOutputs(){
+        	if(currentPlan==-1)return;
+        	
+        	ItemStack current = recipes.get(currentPlan).getCraftedItem();
+            if(current!=null && timer(timerDump, dumpTime / timeScale)){
+                for(int i = 0;i < current.amount;i++){
+                    dump(current.item);
+                }
+            }
+
+            /*if(outputLiquids != null){
+                for(int i = 0; i < outputLiquids.length; i++){
+                    int dir = liquidOutputDirections.length > i ? liquidOutputDirections[i] : -1;
+
+                    dumpLiquid(outputLiquids[i].liquid, 2f, dir);
+                }
             }*/
         }
 
@@ -286,7 +261,17 @@ public class RecipeCrafter extends Block{
 
         @Override
         public boolean shouldAmbientSound(){
-            return cons.valid();
+            return efficiency > 0;
+        }
+        
+        @Override
+        public float warmup(){
+            return warmup;
+        }
+
+        @Override
+        public float totalProgress(){
+            return totalProgress;
         }
         
         @Override
